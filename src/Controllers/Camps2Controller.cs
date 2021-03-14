@@ -26,7 +26,7 @@ namespace CoreCodeCamp.Controllers
             _linkGenerator = linkGenerator;
         }
 
-
+        //http://localhost:6600/api/camps?api-version=2
         [HttpGet]
         public async Task<ActionResult> GetCamps(bool includeTalks = false)
         {
