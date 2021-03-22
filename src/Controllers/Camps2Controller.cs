@@ -9,20 +9,19 @@ using CoreCodeCamp.Data;
 using CoreCodeCamp.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-
+ 
 namespace CoreCodeCamp.Controllers
 {
     [Route("api/[controller]")]
-    [ApiVersion("1.0")]
-    [ApiVersion("1.1")]
+    [ApiVersion("2.0")]
     [ApiController]
-    public class CampsController : ControllerBase
+    public class Camps2Controller : ControllerBase
     {
         private readonly ICampRepository _campRepository;
         private IMapper _mapper;
         private readonly LinkGenerator _linkGenerator;
 
-        public CampsController(ICampRepository campRepository, IMapper mapper, LinkGenerator linkGenerator)
+        public Camps2Controller(ICampRepository campRepository, IMapper mapper, LinkGenerator linkGenerator)
         {
             _campRepository = campRepository;
             _mapper = mapper;
@@ -30,13 +29,18 @@ namespace CoreCodeCamp.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<CampModel[]>> Get(bool includeTalks = false)
+        public async Task<IActionResult> Get(bool includeTalks = false)
         {
             try
             {
                 var camps = await _campRepository.GetAllCampsAsync(includeTalks);
-                var results = _mapper.Map<CampModel[]>(camps);
-                return Ok(results);
+                var result = new
+                {
+                    Count = camps.Count(),
+                    Results = _mapper.Map<CampModel[]>(camps)
+                };
+                
+                return Ok(result);
             }
             catch (Exception)
             {
@@ -45,32 +49,11 @@ namespace CoreCodeCamp.Controllers
         }
 
         [HttpGet("{moniker}")]
-        [MapToApiVersion("1.0")]
         public async Task<ActionResult<CampModel>> Camp(string moniker)
         {
             try
             {
                 var camp = await _campRepository.GetCampAsync(moniker);
-                if (camp == null)
-                {
-                    return this.StatusCode(StatusCodes.Status404NotFound, $"Camp with moniker - {moniker} not found");
-                }
-
-                return Ok(_mapper.Map<CampModel>(camp));
-            }
-            catch (Exception e)
-            {
-                return this.StatusCode(StatusCodes.Status500InternalServerError, "Database Failure");
-            }
-        }
-
-        [HttpGet("{moniker}")]
-        [MapToApiVersion("1.1")]
-        public async Task<ActionResult<CampModel>> Camp11(string moniker)
-        {
-            try
-            {
-                var camp = await _campRepository.GetCampAsync(moniker, true);
                 if (camp == null)
                 {
                     return this.StatusCode(StatusCodes.Status404NotFound, $"Camp with moniker - {moniker} not found");
